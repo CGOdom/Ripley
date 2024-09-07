@@ -10,7 +10,7 @@ const registerUser = async (req, res) => {
     const { username, password, email } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -19,39 +19,37 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user
-    const user = new User({ username, password: hashedPassword, email });
+    const user = new User({ username, password: hashedPassword, email: email.toLowerCase() });
     await user.save();
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
+    console.error('Error registering user:', error);
     res.status(500).json({ message: 'Error registering user', error });
   }
 };
 
-// Controller to login a user
-const loginUser = async (req, res) => {
+// Controller to handle login response after Passport authentication
+const loginUser = (req, res) => {
   try {
-    const { email, password } = req.body;
+    // Generate JWT after successful authentication by Passport
+    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Generate JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    res.status(200).json({ token });
+    res.status(200).json({ message: 'Login successful!', token });
   } catch (error) {
+    console.error('Error during login:', error);
     res.status(500).json({ message: 'Error logging in user', error });
   }
 };
 
-module.exports = { registerUser, loginUser };
+// Controller to logout a user
+const logoutUser = (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error logging out.' });
+    }
+    res.status(200).json({ message: 'Logout successful!' });
+  });
+};
+
+module.exports = { registerUser, loginUser, logoutUser };

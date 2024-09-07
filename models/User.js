@@ -1,46 +1,23 @@
-// models/User.js
+// models/user.js
 
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
 // Define the user schema
-const userSchema = new Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  profile_picture: {
-    type: String,
-    default: '', // Can store a URL or a path to the profile picture
-  },
-  bio: {
-    type: String,
-    default: '',
-  },
-  roles: {
-    type: [String], // Array of strings, e.g., ['member', 'admin']
-    default: ['member'],
-  },
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }, // Additional field: created date
+  updatedAt: { type: Date, default: Date.now }  // Additional field: updated date
 });
 
-// Create the User model
+// Pre-save middleware to update the `updatedAt` field automatically
+userSchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+// Create the User model using the user schema
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

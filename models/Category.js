@@ -9,16 +9,28 @@ const categorySchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true,
+    trim: true, // Remove whitespace from both ends
+    minlength: 1, // Ensure the name is not an empty string
   },
   description: {
     type: String,
     default: '',
+    trim: true, // Remove whitespace from both ends
   },
-  created_at: {
+  createdAt: {
     type: Date,
     default: Date.now,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Middleware to update the `updatedAt` field before saving
+categorySchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 // Create the Category model
