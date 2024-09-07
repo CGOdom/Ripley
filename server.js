@@ -13,7 +13,7 @@ app.use(cors({
   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 }));
 
-// Middleware to parse JSON
+// Middleware to parse incoming JSON requests
 app.use(express.json());
 
 // Example User Registration Route
