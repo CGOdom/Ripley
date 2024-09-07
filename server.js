@@ -1,4 +1,3 @@
-// server.js
 require('dotenv').config();
 
 const express = require('express');
@@ -14,7 +13,7 @@ const app = express();
 require('./config/passport'); // Import Passport configuration
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true }) // Ensure options are provided for backward compatibility
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
@@ -44,10 +43,31 @@ app.use(passport.session());
 app.post('/users/register', UserController.registerUser);
 
 // User Login Route (uses Passport local strategy)
-app.post('/users/login', passport.authenticate('local'), UserController.loginUser);
+app.post('/users/login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error during authentication.', error: err });
+    }
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error during login.', error: err });
+      }
+      return UserController.loginUser(req, res); // Delegate to controller for JWT generation
+    });
+  })(req, res, next);
+});
 
 // User Logout Route
 app.post('/users/logout', UserController.logoutUser);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+});
 
 // Start the server
 const PORT = 3000;
