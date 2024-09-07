@@ -8,7 +8,7 @@ const questionSchema = new Schema({
   title: {
     type: String,
     required: true,
-    trim: true,
+    trim: true, // Trim whitespace from the title
   },
   body: {
     type: String,
@@ -24,17 +24,30 @@ const questionSchema = new Schema({
     ref: 'Category', // Reference to the Category model
     required: true,
   },
-  created_at: {
+  createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now, // Default value is the current date
   },
-  updated_at: {
+  updatedAt: {
     type: Date,
+    default: Date.now, // Initialize with current date
   },
   tags: {
-    type: [String], // Array of strings, e.g., ['android', 'Nostromo']
+    type: [String], // Array of strings for tags
     default: [],
+    validate: {
+      validator: function (tags) {
+        return tags.every(tag => typeof tag === 'string'); // Ensure all tags are strings
+      },
+      message: 'All tags must be strings.',
+    },
   },
+});
+
+// Middleware to update the `updatedAt` field before saving
+questionSchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 // Create the Question model

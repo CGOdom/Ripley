@@ -1,48 +1,55 @@
 // server.js
 
 const express = require('express');
-const cors = require('cors'); // Import the CORS middleware
+const cors = require('cors');
+const mongoose = require('mongoose');
+const session = require('express-session');
+const passport = require('passport');
+const UserController = require('./controllers/userController'); // Import UserController
 
 const app = express();
 
-// Enable CORS for all routes and allow requests from http://localhost:3001
+// Import custom middleware and configuration
+require('./config/passport'); // Import Passport configuration
+
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017/alien_forum', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => console.error('Error connecting to MongoDB:', error));
+
+// Enable CORS for all routes
 app.use(cors({
-  origin: 'http://localhost:3001', // Frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+  origin: 'http://localhost:3001',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
 
-// Example User Registration Route
-app.post('/users/register', (req, res) => {
-  const { username, email, password } = req.body;
+// Initialize session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your_secret_key', // Replace with a secure key for production
+  resave: false,
+  saveUninitialized: false,
+}));
 
-  // Registration logic (replace this with your actual implementation)
-  if (!username || !email || !password) {
-    return res.status(400).json({ message: 'Please provide all required fields.' });
-  }
+// Initialize Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
-  // Simulate user registration success
-  return res.status(201).json({ message: 'User registered successfully!' });
-});
+// User Registration Route
+app.post('/users/register', UserController.registerUser);
 
-// Example Login Route
-app.post('/users/login', (req, res) => {
-  const { email, password } = req.body;
+// User Login Route (uses Passport local strategy)
+app.post('/users/login', passport.authenticate('local'), UserController.loginUser);
 
-  // Authentication logic (replace this with your actual implementation)
-  if (email === 'test@example.com' && password === 'password123') {
-    // Simulate successful login
-    return res.status(200).json({ token: 'example.jwt.token' });
-  }
-
-  return res.status(401).json({ message: 'Invalid email or password.' });
-});
-
-// Additional routes and API endpoints can be defined here
+// User Logout Route
+app.post('/users/logout', UserController.logoutUser);
 
 // Start the server
 const PORT = 3000;
