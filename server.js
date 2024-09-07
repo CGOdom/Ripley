@@ -1,35 +1,51 @@
 // server.js
 
-require('dotenv').config(); // Load environment variables from .env
-
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const cors = require('cors'); // Import the CORS middleware
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// Enable CORS for all routes and allow requests from http://localhost:3001
+app.use(cors({
+  origin: 'http://localhost:3001', // Frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
 
 // Middleware to parse JSON
-app.use(cors());
+app.use(express.json());
 
-// Connect to MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB Atlas'))
-  .catch((err) => console.error('Failed to connect to MongoDB Atlas', err));
+// Example User Registration Route
+app.post('/users/register', (req, res) => {
+  const { username, email, password } = req.body;
 
-// Define routes
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/questions', require('./routes/questionRoutes'));
-app.use('/api/answers', require('./routes/answerRoutes'));
-app.use('/api/comments', require('./routes/commentRoutes'));
+  // Registration logic (replace this with your actual implementation)
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'Please provide all required fields.' });
+  }
 
-// Basic route to verify server is running
-app.get('/', (req, res) => {
-  res.send('Alien Forum API is running');
+  // Simulate user registration success
+  return res.status(201).json({ message: 'User registered successfully!' });
 });
 
+// Example Login Route
+app.post('/users/login', (req, res) => {
+  const { email, password } = req.body;
+
+  // Authentication logic (replace this with your actual implementation)
+  if (email === 'test@example.com' && password === 'password123') {
+    // Simulate successful login
+    return res.status(200).json({ token: 'example.jwt.token' });
+  }
+
+  return res.status(401).json({ message: 'Invalid email or password.' });
+});
+
+// Additional routes and API endpoints can be defined here
+
 // Start the server
+const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Backend server running on http://localhost:${PORT}`);
 });
