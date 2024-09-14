@@ -6,39 +6,30 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   username: { 
     type: String, 
-    required: true, 
-    trim: true, // Remove whitespace from both ends
-    minlength: 3 // Ensure username has at least 3 characters
+    required: [true, 'Username is required'], 
+    trim: true, 
+    minlength: [3, 'Username must be at least 3 characters long'] 
   },
   email: { 
     type: String, 
-    required: true, 
+    required: [true, 'Email is required'], 
     unique: true, 
-    trim: true, // Remove whitespace from both ends
-    lowercase: true // Convert email to lowercase
+    trim: true, 
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
   },
   password: { 
     type: String, 
-    required: true, 
-    minlength: 8 // Ensure password has at least 8 characters
-  },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  }, 
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
+    required: [true, 'Password is required'], 
+    minlength: [8, 'Password must be at least 8 characters long'],
+    validate: {
+      validator: function(v) {
+        return /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/.test(v);
+      },
+      message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+    }
   }
-});
-
-// Pre-save middleware to update the `updatedAt` field automatically
-userSchema.pre('save', function (next) {
-  if (!this.isNew) { // Only update `updatedAt` if the document is modified
-    this.updatedAt = Date.now();
-  }
-  next();
-});
+}, { timestamps: true });
 
 // Create the User model using the user schema
 const User = mongoose.model('User', userSchema);
