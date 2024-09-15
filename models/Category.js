@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the category schema
+// Define the category schema with timestamps
 const categorySchema = new Schema({
   name: {
     type: String,
@@ -17,21 +17,7 @@ const categorySchema = new Schema({
     default: '',
     trim: true, // Remove whitespace from both ends
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// Middleware to update the `updatedAt` field before saving
-categorySchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+}, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
 
 // Create the Category model
 const Category = mongoose.model('Category', categorySchema);

@@ -26,7 +26,7 @@ async function addTestData() {
     // Insert a test user
     const user = new User({
       username: 'Ripley_8',
-      password: 'hashed_password',
+      password: 'hashed_Password1!',
       email: 'ripley8@weyland-yutani.com',
       profile_picture: 'https://example.com/images/ripley8.png',
       bio: 'Survivor of LV-426. Ready for anything.',

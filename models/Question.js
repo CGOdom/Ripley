@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the question schema
+// Define the question schema with timestamps
 const questionSchema = new Schema({
   title: {
     type: String,
@@ -24,14 +24,6 @@ const questionSchema = new Schema({
     ref: 'Category', // Reference to the Category model
     required: true,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now, // Default value is the current date
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now, // Initialize with current date
-  },
   tags: {
     type: [String], // Array of strings for tags
     default: [],
@@ -42,13 +34,7 @@ const questionSchema = new Schema({
       message: 'All tags must be strings.',
     },
   },
-});
-
-// Middleware to update the `updatedAt` field before saving
-questionSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
+}, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
 
 // Create the Question model
 const Question = mongoose.model('Question', questionSchema);
