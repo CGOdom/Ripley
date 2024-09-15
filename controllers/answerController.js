@@ -2,7 +2,6 @@
 
 const Answer = require('../models/Answer');
 const Question = require('../models/Question');
-const User = require('../models/User');
 
 // Controller to get answers for a specific question
 const getAnswers = async (req, res) => {
@@ -10,7 +9,9 @@ const getAnswers = async (req, res) => {
     const { questionId } = req.params;
 
     // Fetch answers for the given question
-    const answers = await Answer.find({ question_id: questionId }).populate('author_id', 'username');
+    const answers = await Answer.find({ question_id: questionId })
+      .populate('author_id', 'username')
+      .sort({ createdAt: -1 }); // Optional: sort by creation date
     res.status(200).json(answers);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching answers', error });
@@ -21,7 +22,12 @@ const getAnswers = async (req, res) => {
 const addAnswer = async (req, res) => {
   try {
     const { questionId } = req.params;
-    const { body, author_id } = req.body;
+    const { body } = req.body;
+
+    // Validate input
+    if (!body) {
+      return res.status(400).json({ message: 'Answer body is required.' });
+    }
 
     // Check if question exists
     const question = await Question.findById(questionId);
@@ -29,11 +35,8 @@ const addAnswer = async (req, res) => {
       return res.status(404).json({ message: 'Question not found' });
     }
 
-    // Check if user exists
-    const user = await User.findById(author_id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Derive author_id from authenticated user
+    const author_id = req.user._id;
 
     // Create a new answer
     const answer = new Answer({ question_id: questionId, body, author_id });

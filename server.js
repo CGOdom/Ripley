@@ -7,12 +7,19 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const passport = require('passport');
-const UserController = require('./controllers/userController');
 const MongoStore = require('connect-mongo');
-const app = express();
 
 // Import Passport configuration
 require('./config/passport');
+
+// Import Routes
+const userRoutes = require('./routes/userRoutes');
+const questionRoutes = require('./routes/questionRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const answerRoutes = require('./routes/answerRoutes');
+const commentRoutes = require('./routes/commentRoutes'); // Import comment routes
+
+const app = express();
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -22,7 +29,7 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
-// Enable CORS for all routes (adjust origin as needed)
+// Enable CORS for all routes
 app.use(cors({
   origin: 'http://localhost:3001', // Your front-end origin
   credentials: true, // Allow credentials (cookies) to be sent
@@ -33,13 +40,14 @@ app.use(express.json());
 
 // Initialize session middleware with MongoDB session store
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key
+  secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    // secure: true, // Uncomment this when using HTTPS
+    // secure: true, // Uncomment this when using HTTPS in production
+    sameSite: 'lax', // Adjust sameSite based on your requirements
     maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
   },
 }));
@@ -48,50 +56,20 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
-app.post('/users/register', UserController.registerUser);
-
-app.post('/users/login', (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
-    if (err) {
-      console.error('Authentication error:', err);
-      return next(err);
-    }
-    if (!user) {
-      // Authentication failed
-      return res.status(401).json({ message: info.message || 'Login failed' });
-    }
-    // Log the user in
-    req.logIn(user, (err) => {
-      if (err) {
-        console.error('Login error:', err);
-        return next(err);
-      }
-      // Authentication and login successful
-      res.json({ message: 'Login successful', user: { id: user._id, email: user.email } });
-    });
-  })(req, res, next);
-});
-
-app.post('/users/logout', UserController.logoutUser);
+// Mount Routes
+app.use('/users', userRoutes);
+app.use('/questions', questionRoutes);
+app.use('/categories', categoryRoutes);
+app.use('/answers', answerRoutes);
+app.use('/comments', commentRoutes); // Mount comment routes
 
 // Endpoint to check if the user is authenticated
 app.get('/users/check-auth', (req, res) => {
   if (req.isAuthenticated()) {
-    res.json({ isAuthenticated: true });
+    res.json({ isAuthenticated: true, user: req.user });
   } else {
     res.json({ isAuthenticated: false });
   }
-});
-
-// Example of a protected route
-app.get('/questions', ensureAuthenticated, (req, res) => {
-  // Fetch questions from the database
-  // res.json(questions);
-});
-
-app.get('/questions/:id', ensureAuthenticated, (req, res) => {
-  // Fetch question details and send response
 });
 
 // Error handling middleware
@@ -101,15 +79,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
-
-// Middleware to check if the user is authenticated
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: 'Unauthorized access' });
-}

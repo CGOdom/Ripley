@@ -2,6 +2,7 @@
 
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const passport = require('passport'); // Import Passport
 
 // Controller to register a new user
 const registerUser = async (req, res) => {
@@ -39,7 +40,29 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Controller to logout a user
+// Controller to log in a user using Passport's local strategy
+const loginUser = (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      console.error('Error during authentication:', err);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+    if (!user) {
+      console.error('Authentication failed:', info.message);
+      return res.status(401).json({ message: info.message || 'Authentication failed' });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error('Error logging in user:', err);
+        return res.status(500).json({ message: 'Error logging in user' });
+      }
+      console.log('User logged in successfully:', user.email);
+      return res.status(200).json({ message: 'Login successful', user });
+    });
+  })(req, res, next);
+};
+
+// Controller to log out a user
 const logoutUser = (req, res) => {
   req.logout((err) => {
     if (err) {
@@ -50,4 +73,5 @@ const logoutUser = (req, res) => {
   });
 };
 
-module.exports = { registerUser, logoutUser };
+// Export all controller functions
+module.exports = { registerUser, loginUser, logoutUser };
