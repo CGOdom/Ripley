@@ -3,12 +3,19 @@
 const Question = require('../models/Question');
 const Category = require('../models/Category');
 
-// Controller to get all questions
+// Controller to get all questions, with optional category filter
 const getQuestions = async (req, res) => {
   try {
-    const questions = await Question.find()
-      .populate('author_id', 'username') // Populate author details
-      .populate('category_id', 'name'); // Populate category details
+    const { category_id } = req.query;
+
+    let query = {};
+    if (category_id) {
+      query.category_id = category_id;
+    }
+
+    const questions = await Question.find(query)
+      .populate('author_id', 'username')
+      .populate('category_id', 'name');
     res.status(200).json(questions);
   } catch (error) {
     console.error('Error fetching questions:', error);
@@ -16,10 +23,26 @@ const getQuestions = async (req, res) => {
   }
 };
 
+// Controller to get a single question by ID
+const getQuestionById = async (req, res) => {
+  try {
+    const question = await Question.findById(req.params.id)
+      .populate('author_id', 'username')
+      .populate('category_id', 'name');
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+    res.status(200).json(question);
+  } catch (error) {
+    console.error('Error fetching question:', error);
+    res.status(500).json({ message: 'Error fetching question', error });
+  }
+};
+
 // Controller to add a new question
 const addQuestion = async (req, res) => {
   try {
-    const { title, body, category_id, tags } = req.body; // Removed author_id from req.body
+    const { title, body, category_id } = req.body;
 
     // Validate input
     if (!title || !body || !category_id) {
@@ -41,7 +64,6 @@ const addQuestion = async (req, res) => {
       body,
       author_id,
       category_id,
-      tags, // Optional: Include tags if provided
     });
 
     // Save to database
@@ -54,4 +76,4 @@ const addQuestion = async (req, res) => {
   }
 };
 
-module.exports = { getQuestions, addQuestion };
+module.exports = { getQuestions, getQuestionById, addQuestion };
