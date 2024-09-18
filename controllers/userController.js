@@ -2,7 +2,7 @@
 
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-const passport = require('passport'); // Import Passport
+const passport = require('passport');
 
 // Controller to register a new user
 const registerUser = async (req, res) => {
