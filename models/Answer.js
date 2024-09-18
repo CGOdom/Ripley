@@ -13,23 +13,36 @@ const answerSchema = new Schema({
   body: {
     type: String,
     required: true,
+    trim: true, // Remove whitespace from both ends
+    minlength: 1, // Ensure the body is not an empty string
   },
   author_id: {
     type: Schema.Types.ObjectId,
     ref: 'User', // Reference to the User model
     required: true,
   },
-  created_at: {
+  createdAt: {
     type: Date,
     default: Date.now,
   },
-  updated_at: {
+  updatedAt: {
     type: Date,
+    default: Date.now,
   },
   votes: {
     type: Number,
-    default: 0, // Upvotes or downvotes
+    default: 0, // Default value for votes
+    validate: {
+      validator: Number.isInteger, // Ensure votes is an integer
+      message: '{VALUE} is not an integer value',
+    },
   },
+});
+
+// Middleware to update the `updatedAt` field before saving
+answerSchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 // Create the Answer model

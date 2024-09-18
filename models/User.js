@@ -9,35 +9,20 @@ const userSchema = new Schema({
     type: String,
     required: true,
     unique: true,
+    trim: true, // Remove whitespace from both ends
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true, // Convert email to lowercase
     trim: true,
   },
   password: {
     type: String,
     required: true,
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  profile_picture: {
-    type: String,
-    default: '', // Can store a URL or a path to the profile picture
-  },
-  bio: {
-    type: String,
-    default: '',
-  },
-  roles: {
-    type: [String], // Array of strings, e.g., ['member', 'admin']
-    default: ['member'],
-  },
+  // Additional fields can be added here (e.g., profile picture, bio, etc.)
 });
 
 // Create the User model
