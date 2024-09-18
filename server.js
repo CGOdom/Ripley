@@ -22,35 +22,37 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 const app = express();
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
 // Enable CORS for all routes
-app.use(cors({
-  origin: 'http://localhost:3001', // Your front-end origin
-  credentials: true, // Allow credentials (cookies) to be sent
-}));
+app.use(
+  cors({
+    origin: 'http://localhost:3001', // Your front-end origin
+    credentials: true, // Allow credentials (cookies) to be sent
+  })
+);
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
 
 // Initialize session middleware with MongoDB session store
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-  cookie: {
-    httpOnly: true,
-    // secure: true, // Uncomment this when using HTTPS in production
-    sameSite: 'lax', // Adjust sameSite based on your requirements
-    maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
-  },
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    cookie: {
+      httpOnly: true,
+      // secure: true, // Uncomment this when using HTTPS in production
+      sameSite: 'lax', // Adjust sameSite based on your requirements
+      maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
+    },
+  })
+);
 
 // Initialize Passport middleware
 app.use(passport.initialize());
@@ -62,15 +64,6 @@ app.use('/questions', questionRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/answers', answerRoutes);
 app.use('/comments', commentRoutes); // Mount comment routes
-
-// Endpoint to check if the user is authenticated
-app.get('/users/check-auth', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({ isAuthenticated: true, user: req.user });
-  } else {
-    res.json({ isAuthenticated: false });
-  }
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

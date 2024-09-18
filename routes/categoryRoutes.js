@@ -2,13 +2,11 @@
 
 const express = require('express');
 const router = express.Router();
-const { getCategories, addCategory } = require('../controllers/categoryController');
-const { ensureAuthenticated, ensureAdmin } = require('../middleware/authMiddleware'); // Import middlewares
+const { getCategories, addCategory, getCategoryById } = require('../controllers/categoryController');
+const { ensureAuthenticated } = require('../middleware/authMiddleware');
 
-// Route to get all categories (accessible to authenticated users)
 router.get('/', ensureAuthenticated, getCategories);
-
-// Route to add a new category (accessible to admins only)
-router.post('/', ensureAuthenticated, ensureAdmin, addCategory);
+router.post('/', ensureAuthenticated, addCategory);
+router.get('/:id', ensureAuthenticated, getCategoryById);
 
 module.exports = router;

@@ -1,16 +1,29 @@
 // controllers/categoryController.js
 
 const Category = require('../models/Category');
-const { ensureAuthenticated, ensureAdmin } = require('../middleware/authMiddleware'); // Import middlewares
 
 // Controller to get all categories
 const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find().select('name description'); // Select relevant fields
+    const categories = await Category.find().select('name description');
     res.status(200).json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ message: 'Error fetching categories', error });
+  }
+};
+
+// Controller to get a single category by ID
+const getCategoryById = async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id).select('name description');
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.status(200).json(category);
+  } catch (error) {
+    console.error('Error fetching category:', error);
+    res.status(500).json({ message: 'Error fetching category', error });
   }
 };
 
@@ -36,4 +49,4 @@ const addCategory = async (req, res) => {
   }
 };
 
-module.exports = { getCategories, addCategory };
+module.exports = { getCategories, getCategoryById, addCategory };
