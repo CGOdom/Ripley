@@ -13,16 +13,28 @@ const commentSchema = new Schema({
   body: {
     type: String,
     required: true,
+    trim: true, // Trim whitespace from the body
+    minlength: 1, // Ensure the body is not an empty string
   },
   author_id: {
     type: Schema.Types.ObjectId,
     ref: 'User', // Reference to the User model
     required: true,
   },
-  created_at: {
+  createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now, // Automatically set to current date
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now, // Automatically set to current date
+  },
+});
+
+// Middleware to update the `updatedAt` field before saving
+commentSchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 // Create the Comment model
