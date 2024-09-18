@@ -1,5 +1,7 @@
 # Ripley
 
+This is a forum dedicated to the "Alien" movie franchise.
+
 ## User Stories
 
 ### User Story 1: Category Filter on Dashboard
