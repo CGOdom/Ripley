@@ -30,7 +30,7 @@ mongoose
 // Enable CORS for all routes
 app.use(
   cors({
-    origin: 'http://localhost:3001', // Your front-end origin
+    origin: 'https://qq5t8z-3000.csb.app/', // Your front-end origin
     credentials: true, // Allow credentials (cookies) to be sent
   })
 );
