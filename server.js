@@ -25,7 +25,7 @@ const app = express();
 mongoose.set('debug', true);
 
 // Validate Required Environment Variables
-const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'SESSION_SECRET', 'ALLOWED_ORIGINS'];
+const requiredEnvVars = ['MONGO_URI', 'SESSION_SECRET', 'ALLOWED_ORIGINS'];
 requiredEnvVars.forEach((varName) => {
   if (!process.env[varName]) {
     console.error(`❗ Missing required environment variable: ${varName}`);
@@ -39,7 +39,6 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     tls: true, // Ensure TLS is used
-    // Removed tlsAllowInvalidCertificates from connection options as it's set in MONGO_URI
     serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
   })
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -65,7 +64,7 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or CURL)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
+      if (!allowedOrigins.includes(origin)) {
         const msg = `🚫 The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
         return callback(new Error(msg), false);
       }
@@ -82,7 +81,7 @@ app.options('*', cors({
   origin: function (origin, callback) {
     // Allow requests with no origin
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
+    if (!allowedOrigins.includes(origin)) {
       const msg = `🚫 The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
       return callback(new Error(msg), false);
     }
@@ -132,13 +131,19 @@ app.get('/users/me', (req, res) => {
   if (req.isAuthenticated()) {
     res.json({ isAuthenticated: true, user: req.user });
   } else {
-    res.json({ isAuthenticated: false });
+    res.status(401).json({ isAuthenticated: false, message: 'Unauthorized' });
   }
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('❗ Unhandled error:', err);
+  
+  if (err.name === 'UnauthorizedError') {
+    // Handle specific Unauthorized errors (e.g., from JWTs if used)
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+  
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
