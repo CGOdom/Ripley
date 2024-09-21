@@ -128,7 +128,7 @@ app.use('/answers', answerRoutes);
 app.use('/comments', commentRoutes); // Mount comment routes
 
 // Endpoint to check if the user is authenticated
-app.get('/users/check-auth', (req, res) => {
+app.get('/users/me', (req, res) => {
   if (req.isAuthenticated()) {
     res.json({ isAuthenticated: true, user: req.user });
   } else {
