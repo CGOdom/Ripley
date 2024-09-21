@@ -31,7 +31,8 @@ mongoose
 app.use(
   cors({
     //origin: 'https://qq5t8z-3000.csb.app/', // Your front-end origin
-    origin: 'https://cabelk.github.io', // Correct
+    //origin: 'https://cabelk.github.io', // Correct
+    origin: 'https://CGOdom.github.io', // Correct
     credentials: true, // Allow credentials (cookies) to be sent
   })
 );
