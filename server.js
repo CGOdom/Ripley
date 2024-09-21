@@ -56,7 +56,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Enable in production (HTTPS)
-      sameSite: 'lax', // Adjust sameSite based on your requirements ('lax' is generally safe)
+      sameSite: 'lax', // 'lax' is generally a good balance between security and usability
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
   })
