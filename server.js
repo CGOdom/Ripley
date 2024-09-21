@@ -24,15 +24,23 @@ const app = express();
 // Enable Mongoose Debug Mode (optional, useful for debugging)
 mongoose.set('debug', true);
 
-// MongoDB connection with enhanced TLS options
+// Validate Required Environment Variables
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'SESSION_SECRET', 'ALLOWED_ORIGINS'];
+requiredEnvVars.forEach((varName) => {
+  if (!process.env[varName]) {
+    console.error(`❗ Missing required environment variable: ${varName}`);
+    process.exit(1);
+  }
+});
+
+// MongoDB connection with TLS options
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     tls: true, // Ensure TLS is used
-    tlsAllowInvalidCertificates: false, // Validate SSL certificates
+    // Removed tlsAllowInvalidCertificates from connection options as it's set in MONGO_URI
     serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
-    // Additional options can be added here if needed
   })
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch((error) => {
@@ -91,7 +99,7 @@ app.use(express.json());
 // Initialize session middleware with MongoDB session store
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
+    secret: process.env.SESSION_SECRET, // Ensure this is set in .env
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ 
