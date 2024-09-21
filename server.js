@@ -30,12 +30,11 @@ mongoose
 // Enable CORS for all routes
 app.use(
   cors({
-    //origin: 'https://qq5t8z-3000.csb.app/', // Your front-end origin
-    //origin: 'https://cabelk.github.io', // Correct
-    origin: 'https://CGOdom.github.io', // Correct
+    origin: process.env.FRONTEND_ORIGIN, // Use environment variable
     credentials: true, // Allow credentials (cookies) to be sent
   })
 );
+
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
