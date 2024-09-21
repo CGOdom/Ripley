@@ -23,19 +23,49 @@ const app = express();
 
 // MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
+
+// Parse allowed origins from environment variables
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [];
+
+// Middleware to log incoming request origins (optional, useful for debugging)
+app.use((req, res, next) => {
+  console.log(`Incoming request from origin: ${req.headers.origin}`);
+  next();
+});
 
 // Enable CORS for all routes
 app.use(
   cors({
-    //origin: 'https://qq5t8z-3000.csb.app/', // Your front-end origin
-    //origin: 'https://cabelk.github.io', // Correct
-    origin: 'https://CGOdom.github.io', // Correct
-    credentials: true, // Allow credentials (cookies) to be sent
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or CURL)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Allow credentials (cookies, authorization headers)
   })
 );
+
+// Handle preflight requests for all routes
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
@@ -49,7 +79,7 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       httpOnly: true,
-      // secure: true, // Uncomment this when using HTTPS in production
+      secure: process.env.NODE_ENV === 'production', // Ensure cookies are only sent over HTTPS in production
       sameSite: 'lax', // Adjust sameSite based on your requirements
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
@@ -66,6 +96,15 @@ app.use('/questions', questionRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/answers', answerRoutes);
 app.use('/comments', commentRoutes); // Mount comment routes
+
+// Endpoint to check if the user is authenticated
+app.get('/users/check-auth', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({ isAuthenticated: true, user: req.user });
+  } else {
+    res.json({ isAuthenticated: false });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
