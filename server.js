@@ -23,18 +23,22 @@ const app = express();
 
 // MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
-// Enable CORS for all routes
+// CORS Configuration
+const allowedOrigin = process.env.FRONTEND_ORIGIN || 'https://cgodom.github.io';
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN, // Use environment variable
+    origin: allowedOrigin,
     credentials: true, // Allow credentials (cookies) to be sent
   })
 );
-
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
@@ -45,11 +49,14 @@ app.use(
     secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: 'sessions',
+    }),
     cookie: {
       httpOnly: true,
-      // secure: true, // Uncomment this when using HTTPS in production
-      sameSite: 'lax', // Adjust sameSite based on your requirements
+      secure: process.env.NODE_ENV === 'production', // Enable in production (HTTPS)
+      sameSite: 'lax', // Adjust sameSite based on your requirements ('lax' is generally safe)
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
   })
