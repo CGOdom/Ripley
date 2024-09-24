@@ -31,11 +31,13 @@ mongoose
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
 // CORS Configuration
-const allowedOrigin = process.env.FRONTEND_ORIGIN || 'https://cgodom.github.io';
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3000'];
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: allowedOrigins, // Allow multiple origins
     credentials: true, // Allow credentials (cookies) to be sent
   })
 );
@@ -55,8 +57,8 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Enable in production (HTTPS)
-      sameSite: 'lax', // 'lax' is generally a good balance between security and usability
+      secure: false, // Set to false in development (HTTP)
+      sameSite: 'lax', // 'lax' allows cookies to be sent with same-site and some cross-site requests
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
   })
@@ -80,7 +82,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001; // Changed port to 3001 for backend
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
