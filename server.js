@@ -92,6 +92,18 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 3001; // Changed port to 3001 for backend
+
+// Determine the server URL for the console log message
+let serverURL;
+
+if (isProduction) {
+  // In production, set the server URL to your CodeSandbox URL
+  serverURL = 'https://qq5t8z-3000.csb.app'; // Replace with your actual CodeSandbox URL
+} else {
+  // In development, use localhost and PORT
+  serverURL = `http://localhost:${PORT}`;
+}
+
 app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
+  console.log(`Backend server running on ${serverURL}`);
 });
