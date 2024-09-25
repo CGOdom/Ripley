@@ -28,15 +28,17 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 
 const app = express();
 
+// **Set trust proxy**
+app.set('trust proxy', 1); // Trust first proxy
+
+// Middleware to parse incoming JSON requests
+app.use(express.json());
+
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000'];
 
-// Middleware to parse incoming JSON requests
-app.use(express.json());
-
-// Initialize CORS middleware
 app.use(
   cors({
     origin: allowedOrigins, // Allow multiple origins
