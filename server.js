@@ -33,7 +33,7 @@ mongoose
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['https://cgodom.github.io'];
+  : ['http://localhost:3000'];
 
 app.use(
   cors({
@@ -46,6 +46,8 @@ app.use(
 app.use(express.json());
 
 // Initialize session middleware with MongoDB session store
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
@@ -57,8 +59,8 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: true, // Set to false in development (HTTP)
-      sameSite: 'none', // 'lax' allows cookies to be sent with same-site and some cross-site requests
+      secure: isProduction, // true in production, false in development
+      sameSite: isProduction ? 'none' : 'lax', // 'none' in production, 'lax' in development
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
   })
