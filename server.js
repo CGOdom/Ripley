@@ -28,20 +28,15 @@ const commentRoutes = require('./routes/commentRoutes'); // Import comment route
 
 const app = express();
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((error) => console.error('Error connecting to MongoDB:', error));
-
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000'];
 
+// Middleware to parse incoming JSON requests
+app.use(express.json());
+
+// Initialize CORS middleware
 app.use(
   cors({
     origin: allowedOrigins, // Allow multiple origins
@@ -49,61 +44,70 @@ app.use(
   })
 );
 
-// Middleware to parse incoming JSON requests
-app.use(express.json());
-
 // Initialize session middleware with MongoDB session store
 const isProduction = process.env.NODE_ENV === 'production';
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: 'sessions',
-    }),
-    cookie: {
-      httpOnly: true,
-      secure: isProduction, // true in production, false in development
-      sameSite: isProduction ? 'none' : 'lax', // 'none' in production, 'lax' in development
-      maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
-    },
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   })
-);
+  .then(() => {
+    console.log('Connected to MongoDB');
 
-// Initialize Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
+    // Initialize session middleware after successful DB connection
+    app.use(
+      session({
+        secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+          client: mongoose.connection.getClient(),
+          collectionName: 'sessions',
+        }),
+        cookie: {
+          httpOnly: true,
+          secure: isProduction, // true in production, false in development
+          sameSite: isProduction ? 'none' : 'lax', // 'none' in production, 'lax' in development
+          maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
+        },
+      })
+    );
 
-// Mount Routes
-app.use('/users', userRoutes);
-app.use('/questions', questionRoutes);
-app.use('/categories', categoryRoutes);
-app.use('/answers', answerRoutes);
-app.use('/comments', commentRoutes); // Mount comment routes
+    // Initialize Passport middleware
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal Server Error' });
-});
+    // Mount Routes
+    app.use('/users', userRoutes);
+    app.use('/questions', questionRoutes);
+    app.use('/categories', categoryRoutes);
+    app.use('/answers', answerRoutes);
+    app.use('/comments', commentRoutes); // Mount comment routes
 
-// Start the server
-const PORT = process.env.PORT || 3001; // Changed port to 3001 for backend
+    // Error handling middleware
+    app.use((err, req, res, next) => {
+      console.error('Unhandled error:', err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
 
-// Determine the server URL for the console log message
-let serverURL;
+    // Start the server
+    const PORT = process.env.PORT || 3001; // Changed port to 3001 for backend
 
-if (isProduction) {
-  // In production, set the server URL to your CodeSandbox URL
-  serverURL = 'https://qq5t8z-3000.csb.app'; // Replace with your actual CodeSandbox URL
-} else {
-  // In development, use localhost and PORT
-  serverURL = `http://localhost:${PORT}`;
-}
+    // Determine the server URL for the console log message
+    let serverURL;
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on ${serverURL}`);
-});
+    if (isProduction) {
+      // In production, set the server URL to your CodeSandbox URL
+      serverURL = 'https://qq5t8z-3000.csb.app'; // Replace with your actual CodeSandbox URL
+    } else {
+      // In development, use localhost and PORT
+      serverURL = `http://localhost:${PORT}`;
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Backend server running on ${serverURL}`);
+    });
+  })
+  .catch((error) => console.error('Error connecting to MongoDB:', error));
