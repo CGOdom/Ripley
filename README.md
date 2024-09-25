@@ -1,5 +1,13 @@
 # Ripley
 
+Access XenoHub front end here (deployed to GitHub Pages): https://cgodom.github.io/ripley-frontend
+
+Access back end console here (deployed to codesandbox.io): https://codesandbox.io/p/github/CGOdom/Ripley/main?workspaceId=c2269905-2c5b-46de-b0e1-2ae9f4256df7
+
+Front end code here: https://github.com/CGOdom/ripley-frontend
+
+Back end code here: https://github.com/CGOdom/Ripley
+
 ## User Stories
 
 ### User Story 1: Category Filter on Dashboard
