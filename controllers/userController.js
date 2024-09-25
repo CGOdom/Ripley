@@ -56,15 +56,22 @@ const loginUser = (req, res, next) => {
         console.error('Error logging in user:', err);
         return res.status(500).json({ message: 'Error logging in user' });
       }
-      console.log('User logged in successfully:', user.email);
-      // Return user data
-      return res.status(200).json({
-        message: 'Login successful',
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-        },
+      // Explicitly save the session before sending the response
+      req.session.save((err) => {
+        if (err) {
+          console.error('Error saving session:', err);
+          return res.status(500).json({ message: 'Error saving session' });
+        }
+        console.log('User logged in successfully:', user.email);
+        // Return user data
+        return res.status(200).json({
+          message: 'Login successful',
+          user: {
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+          },
+        });
       });
     });
   })(req, res, next);
