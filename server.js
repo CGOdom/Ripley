@@ -2,6 +2,13 @@
 
 require('dotenv').config();
 
+// Add console logs to verify that variables are loaded
+console.log('Environment Variables:');
+console.log('MONGO_URI:', process.env.MONGO_URI ? 'Loaded' : 'Not Loaded');
+console.log('SESSION_SECRET:', process.env.SESSION_SECRET ? 'Loaded' : 'Not Loaded');
+console.log('ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
