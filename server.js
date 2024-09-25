@@ -33,7 +33,7 @@ mongoose
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000'];
+  : ['https://cgodom.github.io'];
 
 app.use(
   cors({
@@ -57,8 +57,8 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: false, // Set to false in development (HTTP)
-      sameSite: 'lax', // 'lax' allows cookies to be sent with same-site and some cross-site requests
+      secure: true, // Set to false in development (HTTP)
+      sameSite: 'none', // 'lax' allows cookies to be sent with same-site and some cross-site requests
       maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
     },
   })
