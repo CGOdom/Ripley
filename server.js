@@ -61,7 +61,7 @@ mongoose
     // Initialize session middleware after successful DB connection
     app.use(
       session({
-        secret: process.env.SESSION_SECRET || 'temp_secret_key', // Use a secure secret key in production
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         store: MongoStore.create({
